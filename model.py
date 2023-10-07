@@ -2,6 +2,7 @@ import math
 
 import torch
 import torch.nn
+import torch.cuda
 from torch import nn
 
 
@@ -36,7 +37,7 @@ class PositionalEncoding(nn.Module):
         pos_embed[:, 1::2] = torch.cos(numerator * denominator)
         pos_embed = pos_embed.unsqueeze(0)
         self.register_buffer(
-            'pos_emd' , pos_embed
+            'pe', pos_embed
         )
 
 
@@ -63,7 +64,7 @@ class LayerNormalization(nn.Module):
 
 
 class FeedForward(nn.Module):
-    def __init__(self,d_model:int , d_ff:int , dropout:float):
+    def __init__(self,d_model:int, d_ff: int, dropout:float):
         super().__init__()
         self.linear_1 = nn.Linear(d_model, d_ff)
         self.dropout = nn.Dropout(dropout)
@@ -80,10 +81,10 @@ class MultiHeadAttention(nn.Module):
         self.h = h
         assert d_model % h == 0,"d_model not divisble by head count"
         self.dk = d_model / h
-        self.Wq = nn.Linear(d_model,d_model)
-        self.Wk = nn.Linear(d_model,d_model)
-        self.Wv = nn.Linear(d_model,d_model)
-        self.Wo = nn.Linear(d_model,d_model)
+        self.Wq = nn.Linear(d_model,d_model,bias=False)
+        self.Wk = nn.Linear(d_model,d_model,bias=False)
+        self.Wv = nn.Linear(d_model,d_model,bias=False)
+        self.Wo = nn.Linear(d_model,d_model,bias=False)
         self.dropout = nn.Dropout(dropout)
 
 
@@ -134,7 +135,7 @@ class ResidualConnection(nn.Module):
 
 class EncoderBlock(nn.Module):
     def __init__(self,SelfAttentionBlock: MultiHeadAttention, FeedForwardBlock: FeedForward, dropout: float) -> None:
-        super( self).__init__()
+        super().__init__()
         self.SelfAttentionBlock = SelfAttentionBlock
         self.FeedForwardBlock = FeedForwardBlock
         self.ResidualConnection = nn.ModuleList([ResidualConnection(dropout)for i in range(2)])
@@ -148,7 +149,7 @@ class EncoderBlock(nn.Module):
 
 class Encoder(nn.Module):
     def __init__(self, layers: nn.ModuleList):
-        super(self).__init__()
+        super().__init__()
         self.layers = layers
         self.norm = LayerNormalization
 
@@ -263,6 +264,9 @@ def build_transformer(src_vocab_size : int, target_vocab_size:int ,
             nn.init.xavier_uniform(p)
 
     return transformer
+
+
+print(torch.cuda.is_available())
 
 
 
