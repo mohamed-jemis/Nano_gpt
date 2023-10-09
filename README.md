@@ -19,3 +19,7 @@
 - [x] Training 
 - [ ] Validation
 - [ ] Visualization of logits
+
+Validation function is not yet complete 
+Visulaization of the logits 
+Also making a colab notebook to train on gpu and do more epochs
